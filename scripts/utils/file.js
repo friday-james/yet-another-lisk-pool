@@ -4,6 +4,7 @@ const path = require('path');
 const { updateRewards } = require('./lisk.js');
 
 const BALANCE_FILE = path.resolve('data/balance.json');
+const BACKUP_FILE = path.resolve('backup');
 const SIGNED_TRANSACTION_FILE = path.resolve('data/payout.json');
 
 const getBalanceFile = () => {
@@ -19,14 +20,23 @@ const getBalanceFile = () => {
     }
 };
 
-const overideBalanceFile = data =>
+const overideBalanceFile = data => {
+    var t = new Date(data['lastpayout']).toLocaleDateString().replace(/\//g, "-");
+    var path = BACKUP_FILE + "/balance_" + t + ".json";
+    console.log(path);
+    fs.writeFileSync(path, data, { spaces: 2 });
     fs.writeFileSync(BALANCE_FILE, data, { spaces: 2 });
+};
 
 // Update and save data to file
 const saveRewards = (data, rewards, date) => {
     try {
         const updatedData = updateRewards(data, rewards, date);
         fs.writeFileSync(BALANCE_FILE, data, { spaces: 2 });
+        var t = new Date(data['lastpayout']).toLocaleDateString().replace(/\//g, "-");
+        var path = BACKUP_FILE + '/balance_' + t + '.json';
+        console.log(path);
+        fs.writeFileSync(path, data, { spaces: 2 });
     } catch (error) {
         console.error('Cant write to file', error.message);
     }
