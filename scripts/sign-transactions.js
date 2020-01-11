@@ -1,4 +1,5 @@
 const { transaction } = require('lisk-elements').default;
+const readline = require('readline');
 const config = require('../config.json');
 const {
     getBalanceFile,
@@ -25,6 +26,8 @@ const getSignedTransactions = data =>
         }),
     );
 
+const verifySender = data => data.find(e => e.senderPublicKey === config.delegatePubKey);
+
 const omit = (ids, obj) =>
     Object.keys(obj)
         .filter(id => !ids.includes(id))
@@ -45,11 +48,16 @@ const omit = (ids, obj) =>
     }));
 
     console.log('Sign transactions...');
+	const valid = verifySender(getSignedTransactions(accountsToPay));
+	if (!valid) {
+		throw 'Sender PubKey doesn\'t match the config file';
+	};
     const signedTransactions = getSignedTransactions(accountsToPay);
     console.log('Save signed transactions to file...');
     saveSignedTransactions(signedTransactions);
+    verifySender(signedTransactions);
     console.log('Remove signed transactions addresses from balance file');
     const updatedData = omit(addressIds, data.accounts);
     data.accounts = updatedData;
-    overideBalanceFile(data);
+    //overideBalanceFile(data);
 })();
